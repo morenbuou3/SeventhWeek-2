@@ -1,0 +1,71 @@
+practice1
++----+----------+-----+--------+-----------+--------+
+| id | name     | age | gender | companyId | salary |
++----+----------+-----+--------+-----------+--------+
+|  1 | xiaohong |  19 | female |         1 |   7000 |
++----+----------+-----+--------+-----------+--------+
+SELECT *
+FROM Employee
+WHERE name LIKE '%n%'
+	AND salary > 6000;
+
+practice2
++----------+-------------+
+| name     | companyName |
++----------+-------------+
+| xiaoming | baidu       |
+| xiaohong | alibaba     |
+| xiaozhi  | tengxun     |
++----------+-------------+
+SELECT t.name, c.companyName
+FROM (
+	SELECT *
+	FROM Employee a
+	WHERE a.salary = (
+		SELECT MAX(b.salary)
+		FROM Employee b
+		WHERE b.companyId = a.companyId
+	)
+) t
+	RIGHT JOIN Company c ON t.companyId = c.id;
+	
+practice3
++-------------+-----------+
+| companyName | avgSalary |
++-------------+-----------+
+| tengxun     | 8000.0000 |
++-------------+-----------+
+SELECT c.companyName, t.avgSalary
+FROM (
+	SELECT AVG(salary) AS avgSalary, e.companyId
+	FROM Employee e
+	GROUP BY e.companyId
+) t
+	RIGHT JOIN Company c ON c.id = t.companyId
+WHERE t.avgSalary = (
+	SELECT MAX(avgSalary)
+	FROM (
+		SELECT AVG(salary) AS avgSalary, e.companyId
+		FROM Employee e
+		GROUP BY e.companyId
+	) m
+)
+
+practice4
++----+----------+-----+--------+-----------+--------+-------------+-----------+
+| id | name     | age | gender | companyId | salary | companyName | avgsal    |
++----+----------+-----+--------+-----------+--------+-------------+-----------+
+|  0 | xiaoming |  20 | male   |         0 |   6000 | baidu       | 5000.0000 |
+|  1 | xiaohong |  19 | female |         1 |   7000 | alibaba     | 6500.0000 |
+|  2 | xiaozhi  |  15 | male   |         2 |   8000 | tengxun     | 8000.0000 |
++----+----------+-----+--------+-----------+--------+-------------+-----------+
+SELECT e.*, t.companyName, t.avgSalary AS avgsal
+FROM Employee e
+	LEFT JOIN (
+		SELECT a.companyId, b.companyName, AVG(salary) AS avgSalary
+		FROM Employee a
+			LEFT JOIN Company b ON a.companyId = b.id
+		GROUP BY a.companyId
+	) t
+	ON e.companyId = t.companyId
+WHERE e.salary >= t.avgSalary
